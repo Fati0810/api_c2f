@@ -6,7 +6,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Fatimatadiallo\\ApiC2f\\": "src/"
+            "Fatimatadiallo\\ApiC2f\\": "app/"
         }
     },
     "authors": [
