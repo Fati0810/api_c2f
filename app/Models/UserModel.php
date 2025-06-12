@@ -2,6 +2,7 @@
 namespace App\Models;
 
 use PDO;
+use PDOException;
 
 class UserModel
 {
@@ -12,33 +13,41 @@ class UserModel
         $this->conn = $conn;
     }
 
-    public function emailExists(string $email): bool
+    public function insertUser(array $data): bool
     {
-        $sql = "SELECT COUNT(*) FROM users WHERE email = :email";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([':email' => $email]);
-        return $stmt->fetchColumn() > 0;
-    }
+        $sql = "INSERT INTO users (first_name, last_name, email, password, birthdate, address, postal_code, city, country, created_at) 
+                VALUES (:first_name, :last_name, :email, :password, :birthdate, :address, :postal_code, :city, :country, NOW())";
 
-    public function insertUser(array $userData): bool
-    {
-        $sql = "INSERT INTO users 
-            (first_name, last_name, email, password, birthdate, address, postal_code, city, country) 
-            VALUES 
-            (:first_name, :last_name, :email, :password, :birthdate, :address, :postal_code, :city, :country)";
-        
         $stmt = $this->conn->prepare($sql);
 
         return $stmt->execute([
-            ':first_name'    => $userData['first_name'],
-            ':last_name'     => $userData['last_name'],
-            ':email'         => $userData['email'],
-            ':password'      => $userData['password'], 
-            ':birthdate'     => $userData['birthdate'],
-            ':address'       => $userData['address'],
-            ':postal_code'   => $userData['postal_code'],
-            ':city'          => $userData['city'],
-            ':country'       => $userData['country'],
+            ':first_name'  => $data['first_name'] ?? null,
+            ':last_name'   => $data['last_name'] ?? null,
+            ':email'       => $data['email'] ?? null,
+            ':password'    => $data['password'] ?? null,
+            ':birthdate'   => $data['birthdate'] ?? null,
+            ':address'     => $data['address'] ?? null,
+            ':postal_code' => $data['postal_code'] ?? null,
+            ':city'        => $data['city'] ?? null,
+            ':country'     => $data['country'] ?? null,
         ]);
+    }
+
+    public function authenticate(string $email, string $password)
+    {
+        $sql = "SELECT * FROM users WHERE email = :email LIMIT 1";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([':email' => $email]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user) {
+            return false;
+        }
+
+        if (!password_verify($password, $user['password'])) {
+            return false;
+        }
+
+        return $user;
     }
 }

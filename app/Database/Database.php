@@ -5,18 +5,22 @@ use PDO;
 use PDOException;
 use RuntimeException;
 
+
+
 class Database
 {
     private PDO $conn;
 
     public function __construct()
     {
-        $host = getenv('DB_HOST');
-        $dbname = getenv('DB_NAME');
-        $user = getenv('DB_USER');
-        $password = getenv('DB_PASSWORD');
+        $host = $_SERVER['DB_HOST'] ?? null;
+        $dbname = $_SERVER['DB_NAME'] ?? null;
+        $user = $_SERVER['DB_USER'] ?? null;
+        $password = $_SERVER['DB_PASSWORD'] ?? null;
 
-        if (!$host || !$dbname || !$user || $password === false) {
+
+
+        if (!$host || !$dbname || !$user || $password === null) {
             throw new RuntimeException("Variables d'environnement de la base de données manquantes");
         }
 
@@ -40,4 +44,7 @@ class Database
     {
         return $this->conn;
     }
+
 }
+
+?>
