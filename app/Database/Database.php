@@ -13,10 +13,10 @@ class Database
 
     public function __construct()
     {
-        $host = $_SERVER['DB_HOST'] ?? null;
-        $dbname = $_SERVER['DB_NAME'] ?? null;
-        $user = $_SERVER['DB_USER'] ?? null;
-        $password = $_SERVER['DB_PASSWORD'] ?? null;
+        $host = $_SERVER['DB_HOST'];
+        $dbname = $_SERVER['DB_NAME'];
+        $user = $_SERVER['DB_USER'];
+        $password = $_SERVER['DB_PASSWORD'];
 
 
 
