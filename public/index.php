@@ -1,45 +1,49 @@
 <?php
 
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../config/config.php';
-
- file_put_contents('php://stderr', "REQUEST_URI: " . $_SERVER['REQUEST_URI'] . "\n");
 
 use Dotenv\Dotenv;
 use App\Controllers\UserController;
+use App\Models\UserModel;
 use App\Controllers\DonController;
 use App\Models\DonModel;
 use App\Database\Database;
 
-// Chargement des variables d'environnement
+header('Content-Type: application/json');
+
+// Chargement .env
 $dotenv = Dotenv::createImmutable(__DIR__ . '/../');
 $dotenv->load();
 
-// Pour les réponses JSON
-header('Content-Type: application/json');
-
-// Récupération de l'URI et de la méthode HTTP
-$requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$requestUri = str_replace('/api_c2f', '', parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 $method = $_SERVER['REQUEST_METHOD'];
+$inputData = json_decode(file_get_contents('php://input'), true);
 
-// Connexion BDD et instanciation des modèles et contrôleurs
+// Connexion BDD
 $database = new Database();
 $pdo = $database->getConnection();
 
-$userController = new UserController(); // tu pourras lui injecter un UserModel plus tard si nécessaire
+// Instanciation avec injection
+$userModel = new UserModel($pdo);
+$userController = new UserController($userModel);
+
 $donModel = new DonModel($pdo);
 $donController = new DonController($donModel);
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+
 try {
-    // Routes API
     if ($requestUri === '/api/register' && $method === 'POST') {
-        $userController->store();
+        $userController->store($inputData);
 
     } elseif ($requestUri === '/api/login' && $method === 'POST') {
-        $userController->login();
+        $userController->login($inputData);
 
     } elseif ($requestUri === '/api/don' && $method === 'POST') {
-        $donController->enregistrerDon();
+        $donController->enregistrerDon($inputData);
 
     } else {
         http_response_code(404);

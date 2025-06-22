@@ -27,3 +27,7 @@ error_pdo.log
 *.swp
 *.bak
 *.txt
+
+#Ignorer le cache phpunit
+
+.phpunit.result.cache

@@ -5,53 +5,63 @@ use App\Models\DonModel;
 
 class DonController
 {
-    private DonModel $model;
+    private $model;
 
-    public function __construct(DonModel $model)
+    // Injecte le modèle (pour la base de données)
+    public function setModel($model): void
     {
         $this->model = $model;
     }
 
-    public function enregistrerDon(): void
+    // Méthode qui traite la logique métier, facile à tester en unitaire
+    public function processDon(array $data): array
     {
-        header('Content-Type: application/json');
-        $data = json_decode(file_get_contents("php://input"), true);
-
         if (!isset($data['user_id'], $data['montant'], $data['contribution'], $data['total'], $data['date'])) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Données manquantes.']);
-            return;
+            return ['error' => 'Données manquantes.'];
         }
-
-        $id_user = (int)$data['user_id'];
-        $montant = (float)$data['montant'];
-        $contribution = (float)$data['contribution'];
-        $total = (float)$data['total'];
-        $date = $data['date'];
 
         try {
             $this->model->beginTransaction();
 
-            $id_don = $this->model->insererDon($id_user, $montant, $contribution, $total, $date);
+            $id_don = $this->model->insererDon(
+                (int)$data['user_id'],
+                (float)$data['montant'],
+                (float)$data['contribution'],
+                (float)$data['total'],
+                $data['date']
+            );
+
             $numero_transaction = uniqid('txn_');
 
             $this->model->insererTransaction($id_don, $numero_transaction);
 
             $this->model->commit();
 
-            echo json_encode([
+            return [
                 'success' => true,
                 'message' => 'Don enregistré avec succès.',
                 'numero_transaction' => $numero_transaction,
                 'id_don' => $id_don
-            ]);
+            ];
         } catch (\Exception $e) {
             $this->model->rollBack();
-            http_response_code(500);
-            echo json_encode([
+            return [
                 'error' => 'Erreur lors de l’enregistrement du don.',
                 'details' => $e->getMessage()
-            ]);
+            ];
         }
     }
+
+    // Méthode qui gère la requête HTTP et la réponse JSON
+    public function enregistrerDon(): void
+    {
+        header('Content-Type: application/json');
+
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        $result = $this->processDon($data);
+
+        echo json_encode($result);
+    }
 }
+

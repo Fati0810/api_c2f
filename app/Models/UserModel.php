@@ -15,11 +15,14 @@ class UserModel
 
     public function insertUser(array $data): bool
     {
-        $sql = "INSERT INTO users (first_name, last_name, email, password, birthdate, address, postal_code, city, country, created_at) 
-                VALUES (:first_name, :last_name, :email, :password, :birthdate, :address, :postal_code, :city, :country, NOW())";
+        $sql = "INSERT INTO users 
+            (first_name, last_name, email, password, birthdate, address, postal_code, city, country, created_at) 
+            VALUES 
+            (:first_name, :last_name, :email, :password, :birthdate, :address, :postal_code, :city, :country, NOW())";
 
         $stmt = $this->conn->prepare($sql);
 
+        // On pourrait ajouter un try/catch ici pour capturer d'éventuelles erreurs SQL
         return $stmt->execute([
             ':first_name'  => $data['first_name'] ?? null,
             ':last_name'   => $data['last_name'] ?? null,
@@ -59,7 +62,7 @@ class UserModel
 
         $stmt = $this->conn->prepare("SELECT id, first_name FROM users WHERE email = ?");
         $stmt->execute([$email]);
-        $user = $stmt->fetch();
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$user) {
             return ['status' => 'error', 'message' => 'Aucun utilisateur trouvé avec cet email'];
@@ -80,6 +83,4 @@ class UserModel
             'email' => $email
         ];
     }
-
-
 }

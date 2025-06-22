@@ -15,5 +15,8 @@
             "name": "fati0810",
             "email": "fatimatadiallo8@hotmail.com"
         }
-    ]
+    ],
+    "require-dev": {
+        "phpunit/phpunit": "^12.2"
+    }
 }
